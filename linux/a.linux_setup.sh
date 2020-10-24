@@ -6,15 +6,16 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-#===# Folder Setup
-mkdir -p $HOME/cptc.west/{screenshots,recon,web,vulns,creds,notes,exfil,logs}
-mkdir -p $HOME/cptc.west/logs/asciinema
-mkdir -p $HOME/tools/
-
 #===# Common Tools
 sudo apt update && sudo apt install -y aptitude
 sudo aptitude install -y python3 python3-venv python3-pip flameshot curl wget git asciinema p7zip tmux terminator screen nmap
 sudo curl -o /usr/local/bin/tldr https://raw.githubusercontent.com/raylee/tldr/master/tldr && sudo chmod +x /usr/local/bin/tldr
+
+#===# Folder Setup
+mkdir -p $HOME/cptc.west/{screenshots,recon,web,vulns,creds,notes,exfil,logs}
+mkdir -p $HOME/cptc.west/logs/asciinema
+mkdir -p $HOME/tools/
+git clone https://github.com/trustedsec/ptf $HOME/tools/ptf
 
 #===# Documentation Tools
 wget -O - https://raw.githubusercontent.com/laurent22/joplin/master/Joplin_install_and_update.sh | bash
