@@ -1,0 +1,82 @@
+# https://github.com/hslatman/awesome-industrial-control-system-security
+
+> List of SCADA ports
+https://github.com/gnebbia/nmap_tutorial/blob/master/sections/ics_scada.md
+
+> PCAP Parsing / situational awareness - 2014
+https://github.com/nsacyber/GRASSMARLIN
+
+> ISF - exploitation framework Python - 2020
+exploits - only good is QNX qconn remote code execution
+Scanners - Profinet / Vxworks / S7comm / EthernetIP
+
+git clone https://github.com/dark-lbp/isf/ && cd tools/isf
+pipx install -r requirements.txt
+
+> ISEF - https://github.com/w3h/isf
+plcscan 	Modbus and S7 PLC scanner tools
+lantronix_telnet_password 	Recover lantronix telnet password
+Siemens_1200_Control 	Control Siemens PLC
+
+sudo apt-get install python-dev python-pip libncurses5-dev git
+git clone https://github.com/w3h/isf
+cd isf
+sudo pip install -r requirements.txt
+./isf.py
+
+> https://github.com/0xICF/SCADAShutdownTool - 2015
+Only use safemode to list non Zero values.
+
+> https://github.com/mssabr01/sixnet-tools - 2018
+- recon/modding Sixnet’s PLCs and RTUs
+- NOP Scan, enable telnet/FTP, very dumb shell (may be dangerous)
+
+> https://github.com/klsecservices/s7scan - 2018
+py2.7 & scapy
+
+> https://github.com/hslatman/awesome-industrial-control-system-security/blob/main/source/s7-cracker.py - 2014
+- Py 2.7 - offline pw crack based on PCAP traffic dump.
+--------------------
+
+==================
+git clone https://github.com/digitalbond/Basecamp
+## CoDeSys - 
+The PLC / RTU that are part of this project are:
+    3S CoDeSys
+    GE D20
+    Koyo / DirectLOGIC
+    Rockwell Automation ControlLogix
+    Schneider Electric Modicon
+
+** 3S CoDeSys - ladder logic system on PLCs
+codesys-shell.py -- unauthenticated user the ability to perform privileged operations, sans password. The commands available vary by PLC, so type “?” to get a list of options.
+codesys-transfer.py --  a file transfer tool which allows for reading and writing files on controllers with a filesystem
+^^ py scripts can easily be ported to be Metasploit modules, and could be made to run the Meterpreter shell on supported operating systems. ^^
+
+** GE D20 RTU - ancient device used within electric sector
+d20tftpbd - command line access with no auth; try typing the help command
+d20pass - displays the account usernames and passwords from the GE D20 device configuration.
+d20_tftp_overflow - DoS attack (DO NOT USE, only report on)
+^^ all supposely in Metasploit
+
+ged20cmd.py - same as MSF command line tool
+ged20telnet-fp.py - fingerprint tool for controllers with telnet (USE WITH CARE, may crash some controllers)
+ged20tftp.rb -- BoF (DO NOT USE, only report on)
+
+** Koyo DirectLOGIC - lowend PLC device, not widely used except for small plants
+koyobrute.rb - bruteforce 7 digit pw; use pw to download ladder logic & go from there.
+
+**  Rockwell Automation ControlLogix - PLC
+ethernetip-multi.rb
+^^ MSF, BUT all about stopping/rebooting device (DO NOT USE)
+
+** Schneider Electric Modicon - PLC usesd in water plants...
+modicon_command – Schneider Modicon Remote Start/Stop Command
+modicon_password_recovery – Schneider Modicon Quantum Password Recovery
+modicon_stux_transfer – Schneider Modicon Ladder Logic Upload/Download
+^^ PW Recovery best option, shows backdoor/default pw in usage. Others not so useful.
+
+====== OLD TOOLS ========
+plcscan 	Tool for scaning PLC devices over the s7comm or modbus protocol. 
+ModScan 	ModScan is a new tool designed to map a SCADA MODBUS TCP based network. 
+-----------------------------

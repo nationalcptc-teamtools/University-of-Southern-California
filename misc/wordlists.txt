@@ -1,0 +1,5 @@
+Domain names - https://github.com/assetnote/commonspeak2-wordlists/blob/master/subdomains/subdomains.txt 
+Usernames - https://github.com/insidetrust/statistically-likely-usernames 
+Passwords - https://github.com/berzerk0/Probable-Wordlists/tree/master/Real-Passwords 
+Passwords - https://github.com/FlameOfIgnis/Pwdb-Public/tree/master/wordlists 
+Web server files - https://github.com/assetnote/commonspeak2-wordlists/tree/master/wordswithext
